@@ -58,6 +58,7 @@ class Affiliates_WooCommerce_Views {
 	public static function affiliates_woocommerce_orders( $atts, $content = null ) {
 		global $wpdb, $woocommerce;
 		$output = "";
+		$summary_output = "";
 		$options = shortcode_atts(
 			array(
 				'status'     => AFFILIATES_REFERRAL_STATUS_ACCEPTED,
@@ -128,14 +129,43 @@ class Affiliates_WooCommerce_Views {
 							$item_meta = new WC_Order_Item_Meta( $item['item_meta'] );
 							$item_meta->display();
 							$output .= '</td><td class="product-total">' . $order->get_formatted_line_subtotal( $item ) . '</td></tr>';
+							$order_product_items[$order_id] = intval( $item['product_id']);
 						}
 					}
 					$output .= '</tbody>';
 					$output .= '</table>';
 				}
+				$products_total = array_count_values( $order_product_items ) ;	
+				$summary_output = "<p><strong>Show the Summary of the Products bought by Referrals</strong></p>";
+				$summary_output .= '<table class="shop_table order_details">';
+				$summary_output .= '<thead>';
+				$summary_output .= '<tr>';
+				$summary_output .= '<th class="product-name">';
+				$summary_output .= 'Product Name';
+				$summary_output .= '</th>';
+				$summary_output .= '<th class="product-name">';
+				$summary_output .= 'How many times has been bought';
+				$summary_output .= '</th>';
+				$summary_output .= '</thead>';
+				$summary_output .= '<tbody>';
+				foreach ( $products_total as $key=>$value) {
+					$summary_output .= '<tr class = "product-name">';
+					$summary_output .= '<td class="product-name">';
+					$summary_output .= apply_filters( 'woocommerce_order_table_product_title', '<a href="' . get_permalink( $key ) . '">' . get_the_title( $key ) . '</a>' ) . ' ';
+					$summary_output .= '</td>';
+					$summary_output .= '<td class="amount-bought">';
+					$summary_output .= 'the product has been bought <strong>' . $value . '</strong> times by referrals';
+					$summary_output .= '</td>';
+					$summary_output .= '</tr>';
+				}
+				$summary_output .= '</tbody>';
+				$summary_output .= '</table>';
 			}
 		}
-		return $output;
+		if ( !empty( $summary_output ) && isset( $summary_output )) 
+			return $summary_output.$output;
+		else	
+			return $output;
 	}
 
 	/**
